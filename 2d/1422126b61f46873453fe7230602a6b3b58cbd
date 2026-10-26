@@ -1,0 +1,14 @@
+README.md
+  h_12a30d08a0ab29 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2d1422126b61f46873453fe7230602a6b3b58cbd",
+  "prompts": {},
+  "humans": {
+    "h_12a30d08a0ab29": {
+      "author": "蔡鸣铭 <caimingming@eccom.com.cn>"
+    }
+  }
+}
