@@ -1,0 +1,26 @@
+.gitignore
+  h_12a30d08a0ab29 1-15
+README.md
+  h_12a30d08a0ab29 1-95
+cordis.patch.yml
+  h_12a30d08a0ab29 1-5
+icon.svg
+  h_12a30d08a0ab29 1-10
+lib/client.js
+  h_12a30d08a0ab29 1-551
+lib/index.js
+  h_12a30d08a0ab29 1-895
+package.json
+  h_12a30d08a0ab29 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f2059d81e89a0700523f027e6fa8cd3bce3bfaa8",
+  "prompts": {},
+  "humans": {
+    "h_12a30d08a0ab29": {
+      "author": "蔡鸣铭 <caimingming@eccom.com.cn>"
+    }
+  }
+}
