@@ -1,0 +1,14 @@
+lib/client.js
+  h_12a30d08a0ab29 12-15,19-20,105-120,532
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "638991f235a078acc806706fc65a08b98c5f5330",
+  "prompts": {},
+  "humans": {
+    "h_12a30d08a0ab29": {
+      "author": "蔡鸣铭 <caimingming@eccom.com.cn>"
+    }
+  }
+}
