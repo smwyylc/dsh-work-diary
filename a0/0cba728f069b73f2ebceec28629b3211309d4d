@@ -1,0 +1,16 @@
+lib/client.js
+  h_12a30d08a0ab29 55-68,181-184,211-215,219,232-238,243-244,252-257,360-362,516-517,534-537,539
+lib/index.js
+  h_12a30d08a0ab29 3,441-449,464,468,472,481-483,487,491,494-503,531-575,826-833
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a00cba728f069b73f2ebceec28629b3211309d4d",
+  "prompts": {},
+  "humans": {
+    "h_12a30d08a0ab29": {
+      "author": "蔡鸣铭 <caimingming@eccom.com.cn>"
+    }
+  }
+}
