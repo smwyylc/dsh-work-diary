@@ -13,3 +13,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# 派发台跑完留下的本地日志（result.json 等），不属于仓库
+collab/
