@@ -1,0 +1,5 @@
+# dsh-work-diary 自注册 bundle：row id 用包名（= 包名，browser module 身份才稳定）。
+# 由 profile 的 dsh.profile.bundles 挂载，profile 侧不再手写 insert 行。
+- insert:
+    - id: dsh-work-diary
+      name: dsh-work-diary

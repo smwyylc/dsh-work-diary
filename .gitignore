@@ -1,0 +1,15 @@
+# 依赖
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+
+# 运行时产生的本地数据（设置与生成结果都在这里，不属于仓库）
+/work-diary/
+*.local.json
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
