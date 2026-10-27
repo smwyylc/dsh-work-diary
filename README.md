@@ -1,101 +1,109 @@
 # dsh-work-diary
 
-DSH Web GUI 的每日工作日记。侧边栏多一个「日记」图标，点开按天汇总当天有活动的会话，生成一份 Markdown 日记；可每天定时生成，也可随时手动生成，用来总结的模型可配置。
+English | [中文](README.zh.md)
 
-一天开十几个会话、跑几十个工具调用，到下班往往想不起今天到底做了什么。这个插件替你把这些会话翻一遍，攒成一篇能看的日记——不读全文，够说明「大致做了什么」就行。默认档一天一次约 7200-9200 token。
+A daily work diary for the DSH Web GUI. The sidebar gains a "Diary" icon; opening it gathers the sessions that had activity on a given day and turns them into one Markdown diary entry. It can run on a schedule every day or on demand, and the model used for the summary is configurable.
 
-## 做什么
+A dozen sessions and a few dozen tool calls in one day, and by the evening you rarely remember what you actually did. This plugin flips through those sessions for you and saves them into a readable diary — you do not read the whole thing, it only has to say roughly "what got done today". The default tier costs about 7200-9200 tokens once a day.
 
-- 按本地时区挑出某一天有活动的会话（默认今天，可切昨天或任意日期）。「有活动」按最近一次真人提问判定，跨天继续干的长会话不会漏。
-- 每个会话只取元数据、首条用户诉求、末条助手结论，加上工具调用碰过的文件名，拼成摘要交给模型。末条助手结论答的是「最后干成了什么」，比用户诉求更直接——诉求说的是想做什么；末条只是个半句时改用上一条完整结论，并标上「（进行中）」。
-- 模型按固定节输出：今日概览 / 按项目列出今天做了哪些工作；完整档多一节遗留与下一步。
-- 面板下方始终列出当天会话，点卡片直接跳到对应会话。
+## What it does
 
-## 安装
+- Picks the sessions that had activity on one day in local time (today by default, switchable to yesterday or any date). "Active" is judged by the last real human question, so a long session that keeps running across days is not missed.
+- Each session contributes only metadata, its first user request, and its last assistant conclusion, plus the file names its tool calls touched, assembled into a digest handed to the model. The last assistant conclusion answers "what finally got done", which is more direct than the first request — the request says what you wanted; when the last line is only half a sentence it falls back to the previous complete conclusion and is marked "(in progress)".
+- The model writes fixed sections: today's overview / the work done today listed by project; the complete tier adds one more section for leftovers and the next step.
+- The panel always lists that day's sessions below; clicking a card jumps straight to that session.
 
-静态 cordis bundle，没有构建步骤：`lib/index.js` 是 Host 半边，`lib/client.js` 是 Client 半边，`cordis.patch.yml` 声明要挂载的行，`icon.svg` 是侧栏图标。
+## Install
 
-1. 把本目录放到任意位置（和其他插件放在一起即可）。
-2. 用 DSH 插件管理器的「安装本地 bundle」把它装入当前 profile。这一步会写好 profile 的依赖项与挂载，不用手改 profile。
-3. 重启 DSH，侧边栏出现「日记」图标。
+From npm, or from any plugin market that indexes it:
 
-改代码后需要重启才生效：模块在进程启动时加载。
+```sh
+dsh plugin --profile web add @smwyylc/dsh-work-diary
+```
 
-## 用法
+Or install a checkout as a local bundle: `lib/index.js` is the Host half, `lib/client.js` is the Client half, `cordis.patch.yml` declares the row to mount, and `icon.svg` is the sidebar icon; there is no build step.
 
-1. 侧边栏点「日记」图标。
-2. 顶部选日期（今天 / 昨天 / 日期框），点「生成总结」，正文流式出现。
-3. 要改定时或模型：点右上角「设置」，内联展开设置区，改完点「保存设置」。
+1. Put this directory anywhere (next to your other plugins is fine).
+2. Use the DSH plugin manager's "Install local bundle" to install it into the current profile. This step writes the profile's dependency and mount for you; no hand-editing of the profile.
+3. Restart DSH and a "Diary" icon appears in the sidebar.
 
-已有总结的日期，按钮是「重新生成」——每点一次都是一次真实的模型调用。
-模型输出撞到长度上限时，正文下方会标出来，那一次的结尾可能是半句话。
+After changing the code a restart is required: modules are loaded at process start.
 
-## 预计花费
+## Usage
 
-口径：**输入 = 当天所有会话的 digest + 固定模板**（模板精简档 267 字符、完整档 299 字符）。读会话、扫工具调用里的文件名都是本地磁盘 I/O，不花 token；只有生成那一次调模型。下表以 13 个会话的一天为样本，会话数翻倍时输入大致也翻倍，输出不变。
+1. Click the "Diary" icon in the sidebar.
+2. Pick a date at the top (today / yesterday / date box) and click "Generate summary"; the body streams in.
+3. To change the schedule or the model: click "Settings" at the top right, the settings area expands inline, then click "Save settings".
 
-| 项 | 精简（默认） | 完整 |
+For a date that already has a summary the button reads "Regenerate" — every click is a real model call.
+When the model output hits the length cap it is marked below the body, and that run's ending may be half a sentence.
+
+## Expected cost
+
+Basis: **input = that day's digests of every session + the fixed template** (267 characters for the brief template, 299 for the complete one). Reading sessions and scanning file names out of tool calls are local disk I/O and cost no tokens; only the generation call hits the model. The table below samples a day of 13 sessions; doubling the session count roughly doubles the input and leaves the output unchanged.
+
+| Item | Brief (default) | Complete |
 | --- | --- | --- |
-| 输入字符（digest + 固定模板） | 约 10-12k | 约 13-17k |
-| 输入 token（按 1.5 字符/token） | 约 6700-8000 | 约 8700-11300 |
-| 输出 + 思考 token | 约 500-1200 | 约 800-1900 |
-| 一天合计 token | 约 7200-9200 | 约 9500-13200 |
+| Input characters (digest + fixed template) | about 10-12k | about 13-17k |
+| Input tokens (at 1.5 characters/token) | about 6700-8000 | about 8700-11300 |
+| Output + thinking tokens | about 500-1200 | about 800-1900 |
+| Total tokens for the day | about 7200-9200 | about 9500-13200 |
 
-区间来自两件事叠加：结论额度从 500 提到 1000 字（精简档输入因此从约 4400 token 涨到约 6.7k），以及「末条太短时回填上一条完整结论」（见下节）。回填能拿回多长取决于会话本身——实测同一天里，回填可能只多拿 45 字，也可能拿回 900 字，所以上下界差得开。13 个会话里通常只有一两个触发。
+The range comes from two things stacking together: the conclusion budget was raised from 500 to 1000 characters (which pushed the brief tier's input from about 4400 tokens to about 6.7k), and the "backfill the previous complete conclusion when the last line is too short" rule (see the next section). How much a backfill recovers depends on the session itself — measured on the same day, a backfill may add only 45 characters or recover 900, which is why the bounds are far apart. Usually only one or two of the 13 sessions trigger it.
 
-一天自动跑一次。关掉「每天定时生成」后固定开销为 0，只有点「生成总结」时才发生调用。
+It runs automatically once a day. With "Generate daily on a schedule" turned off the fixed cost is 0 and a call only happens when you click "Generate summary".
 
-## 省 token 的做法
+## How it saves tokens
 
-默认档从取样到输出逐层压，每一层只留「答得出今天做了什么」所需的部分。
+The default tier compresses layer by layer, from sampling to output, keeping only what is needed to answer "what got done today".
 
-**取样**：每个会话送两行正文（首条诉求 + 末条结论），会话头里再点几个文件名。
+**Sampling**: each session sends two lines of body (first request + last conclusion), and the session header names a few files.
 
-- 先滤噪声。会话的首条和末条经常不是工作内容，而是「继续」「好的谢谢」这类客套、短追问，或者整段粘进来的代码、表格。原样送进去等于花 token 买噪声：
-  - 整句只由客套词拼成（去掉标点后只剩「好的 / 谢谢 / 继续 / ok / thanks」这类），才算客套；
-  - 短追问要三条同时成立才丢：疑问性开头（「所以 / 那 / 然后 / 是不是」）、疑问语气收尾、不足 20 字。避免误杀「帮我把并发降到 4？」这种真指令；
-  - 整段代码：首词是 `const` / `function` / `select` / `import` 之类并且近处出现语句标点，或者多行带分号花括号。只看首词会把「delete the temp files」这种正常句子误判成代码；
-  - 整段粘贴的日志或命令：长度 60 字以上而中文占比不足 25%。真诉求是中文句子，日志、报错栈、curl 命令几乎纯 ASCII，两边分得很开。这条不能省：粘贴物和前后文的重合度最低，完整档按「最不像」挑主线时第一个就会挑中它；
-  - 标题另有一套判据，只排代码与过长粘贴，短标题（「git 版本」）照常保留——否则摘要头会全退化成项目名，分不出会话。
-- 首条诉求 + 末条助手结论。首条声明要干什么；末条助手正文说的是最后做成了什么——「删干净了，远端分支已删除」「没做，只写了方案，等你拍板」「223153 已投进测试 MQ，无失败」。这是「今天做了哪些工作」最直接的答案：诉求说的是**想**做什么，结论说的是**做成了**什么。结论只收 `text` 块，模型内部的 `reasoning` 块（思考过程）不进摘要——「想过」不等于「做过」。
-- 完整档另送主线一条、结尾两条。结尾说明用户最后要求了什么；主线补首尾看不到的中段，挑「和首尾最不像、同时够具体」的一条，按长度打折，短岔路赢不过稍长的新话题，话题转折处通常正是这一轮换目标的时刻。整场都在同一件事上打转时退回取最长的一条；40 条诉求以下的会话不花主线的钱。精简档这两行都不要：结尾与结论问的是同一件事、结论答得更准；主线在长会话里最容易被用户**粘回来的助手回复**占住——这类文本和短锚点最不像、又足够长，正好命中主线的判据，而精简档只有一条首条诉求做对照，被它带偏的代价比省下的那 120 字大得多。
-- 文件名取最常碰的那个。工具调用里出现过的文件名按出现次数排序，会话头里列第一个（完整档 5 个），多出来的只报 `+N`。文件名是「真改了哪儿」的直接证据，一句「碰过 CertStandardName.asp」比任何一条诉求都具体，而它只占十来个字符。只留 basename，目录丢掉；必须带代码或文档后缀才算，URL 和句子里的词不算。
-- 逐条截断：精简档诉求 200 字、完整档 500 字；主线 400 字（仅完整档），结论精简档 1000 字、完整档 1500 字。结论和诉求各占一份额度，几条诉求拼成一段再截会合吃一份额度。结论额度比诉求宽得多：诉求一句话就说完，而结论常常是几百上千字的完整答复，切在半句等于没答。
-- 末条太短时往回回填。活跃会话的最后一条助手消息常常只是引子（「消息体只有一个 id 字段。现在看谁调用它」），拿它当「做成了什么」等于作废这条信号。所以末条不足 80 字时改用最后一条够长的结论，并在行尾标「（进行中）」，让模型知道这条是回填的、当时会话还在跑。80 这条线是量出来的：真答复也有短的，实测 97 / 248 / 278 字那三条都是完整结论，都在这条线以上，不会被换掉；短于 80 且没有更长结论可回填时仍然用末条——短也胜于无。
-- 会话头压成一行：时间、诉求条数、碰过的文件；精简档不带 cwd 长路径。跨天会话两端都带日期（`10-23 17:46 - 10-26 17:35`），不会显示成看着倒挂的 `17:46-17:35`。
+- Filter the noise first. A session's first and last lines are often not work content but pleasantries like "continue" or "thanks", short follow-ups, or pasted-in code and tables. Sending them as-is buys noise with tokens:
+  - A sentence counts as a pleasantry only when, with punctuation stripped, it is nothing but words like "ok / thanks / continue";
+  - A short follow-up is dropped only when three things hold at once: an interrogative opening ("so / then / wait / is it"), an interrogative ending, and fewer than 20 characters. This avoids killing a real instruction like "can you get the concurrency down to 4?";
+  - Pasted code: the first word is `const` / `function` / `select` / `import` or similar and statement punctuation appears nearby, or multiple lines carry semicolons and braces. Looking only at the first word would misjudge a normal sentence like "delete the temp files";
+  - A pasted log or command: 60 characters or more with under 25% Chinese characters. A real request is a Chinese sentence, while logs, error stacks and curl commands are almost pure ASCII, so the two separate cleanly. This one cannot be dropped: pasted content has the least overlap with its surroundings, and the complete tier's "most unlike" mainline pick would select it first;
+  - Titles use a separate rule that only excludes code and over-long pastes; short titles ("git version") are kept as-is — otherwise every digest header would degrade to the project name and sessions would become indistinguishable.
+- First request + last assistant conclusion. The first request declares what is to be done; the last assistant body says what finally got done — "cleaned up, the remote branch is deleted", "not done, only the plan is written, waiting for your call", "223153 is in the test MQ with no failures". This is the most direct answer to "what work got done today": the request says what you **wanted** to do, the conclusion says what was **done**. Only `text` blocks are collected from conclusions; the model's internal `reasoning` blocks (the thinking process) never enter the digest — "thought about" is not "did".
+- The complete tier also sends one mainline line and two ending lines. The endings state what the user last asked for; the mainline covers the middle that the first and last lines cannot see, picking "least like the first and last, yet specific enough", discounted by length so a short detour cannot beat a slightly longer new topic — a topic turn is usually exactly the moment the goal changed. When the whole session circles one thing it falls back to the longest line; sessions under 40 requests do not pay for the mainline. The brief tier drops both lines: the ending and the conclusion ask the same thing and the conclusion answers it better; the mainline is the line most easily captured by an assistant reply the user **pasted back** in a long session — that text is least like the short anchors and long enough, hitting the mainline's criteria exactly, while the brief tier has only one first request to compare against, so being led astray costs more than the 120 characters saved.
+- File names take the most-touched one. File names seen in tool calls are sorted by count and the first is listed in the session header (5 in the complete tier), extras only reported as `+N`. A file name is direct evidence of "what was really changed" — one line "touched CertStandardName.asp" is more concrete than any request, and it costs only a dozen characters. Only basenames are kept, directories dropped; a code or document suffix is required, while URLs and words inside sentences do not count.
+- Truncate item by item: 200 characters for a brief request, 500 for a complete one; 400 for the mainline (complete tier only), 1000 for a brief conclusion, 1500 for a complete one. The conclusion and the request each get their own budget; several requests joined into one paragraph before truncation would share one budget. The conclusion budget is much wider than the request's: a request is one sentence, while a conclusion is often a complete reply of hundreds or thousands of characters, and cutting it in half answers nothing.
+- Backfill when the last line is too short. An active session's last assistant message is often only a lead-in ("the message body has a single id field. now looking at who calls it"), and using it as "what got done" voids that signal. So when the last line is under 80 characters the last long-enough conclusion is used instead and the line is marked "(in progress)", telling the model this one is backfilled and the session was still running. The 80 line was measured: real replies can be short too, and the measured 97 / 248 / 278 character lines are all complete conclusions, all above the line and never replaced; when it is under 80 with no longer conclusion to backfill, the last line is still used — short beats nothing.
+- The session header is compressed to one line: time, request count, files touched; the brief tier carries no long cwd path. A session spanning days shows dates at both ends (`10-23 17:46 - 10-26 17:35`), so it never displays as the upside-down-looking `17:46-17:35`.
 
-**输出**：
+**Output**:
 
-- 请求带 `maxTokens` 硬顶（精简 900 / 完整 1600）。提示词里写「不超过 600 字」模型经常不听，只有请求字段能兜住；留一倍余量是免得正文截断在半句。
-- 思考档位取该模型支持的最低一档。摘要不需要长思考，而思考 token 常常比正文还贵；模型不暴露档位就不传，让适配器用自己的默认。
+- The request carries a hard `maxTokens` cap (900 brief / 1600 complete). Writing "no more than 600 characters" in the prompt is routinely ignored by the model; only the request field can hold the line. The twofold margin avoids the body being cut mid-sentence.
+- The thinking tier takes the lowest one the model supports. A summary needs no long thinking, and thinking tokens are often dearer than the body; when the model exposes no tiers none is sent, letting the adapter use its own default.
 
-## 配置
+## Configuration
 
-设置保存在 `[DSH_HOME]/work-diary/settings.json`（`DSH_HOME` 未设置时为 `~/.dsh`）。字段：
+Settings are saved in `[DSH_HOME]/work-diary/settings.json` (`~/.dsh` when `DSH_HOME` is unset). Fields:
 
-| 字段 | 默认 | 说明 |
+| Field | Default | Meaning |
 | --- | --- | --- |
-| `enabled` | `true` | 是否每天定时自动生成 |
-| `time` | `18:00` | 本地时间 HH:MM，到点自动跑一次 |
-| `provider` | 空 | 总结模型的 provider；provider 与 model 都为空表示跟随默认模型 |
-| `model` | 空 | 总结模型的 model |
-| `language` | `zh` | 输出语言，`zh` 或 `en` |
-| `verbosity` | `brief` | 详细程度：`brief` 精简（省 token）/ `full` 完整 |
-| `maxSessions` | `40` | 单次总结最多纳入多少个会话，超出的在面板上提示数量 |
+| `enabled` | `true` | Whether to generate automatically on a schedule every day |
+| `time` | `18:00` | Local time HH:MM, runs once when the time arrives |
+| `provider` | empty | Provider of the summary model; empty provider and model means follow the default model |
+| `model` | empty | Model of the summary model |
+| `language` | `zh` | Output language, `zh` or `en` |
+| `verbosity` | `brief` | Detail level: `brief` (token-saving) / `full` |
+| `maxSessions` | `40` | Maximum sessions included in one summary; the panel reports the count beyond it |
 
-设置面板里可以改开关、时间、provider / model、语言、详细程度；`maxSessions` 需要手改 `settings.json`，改完下次启动生效。
+The settings panel can change the switch, the time, provider / model, language and detail level; `maxSessions` needs a hand edit of `settings.json` and takes effect on the next start.
 
-自动执行：到点对当天跑一次（面板状态显示「自动」）。DSH 启动时若当天还没有结果、且当前时间已过设定时间，会立即补跑一次，Host 日志里能看到 `catch-up` 字样。
+Automatic execution: one run for the current day when the time arrives (the panel status shows "auto"). If the day has no result yet at DSH startup and the set time has passed, a catch-up run fires immediately; the word `catch-up` appears in the Host log.
 
-生成结果按日期保存在 `[DSH_HOME]/work-diary/last-runs.json`，保留最近 30 份。打开面板时该日期已有结果就直接显示，不会重复生成。
+Generated results are saved by date in `[DSH_HOME]/work-diary/last-runs.json`, keeping the latest 30. Opening the panel for a date that already has a result shows it directly without generating again.
 
-## 数据从哪来
+## Where the data comes from
 
-- 会话清单取两路并集：`sessionController.list()` 里 `updatedAt`（最近一次真人提问，取自持久化投影缓存）落在当天的会话，加上最近 7 天创建的会话。投影缓存不是全覆盖，没覆盖的会话 `updatedAt` 会退回创建时间而被漏掉，第二路就是补这个漏；最后用 `readSession` 的真实事件时间终审。第二路是纯追加，猜错只会多读几个会话，不会漏。
-- 每个会话只读一次 `sessionQuery.readSession`：一次拿齐 header、标题、计数、全部真人诉求、末条助手结论和工具调用事件。listEvents / readEvent / readSession 每次都是全量加载会话日志，观测缓存只有 5 条 LRU，多读一次就是成倍等待。
-- 诉求只认真人输入：`source.kind === 'user'` 的 `user/message` 才算，agent 注入的上下文不算；一条真人输入都没有的会话直接跳过。
-- 结论取 `assistant/message` 的 `data.message.content`（注意不是 `data.content`，那是用户消息的路径）：块数组里只收 `type === 'text'` 的块，多块用换行拼，整场取最后一条非空的——末条才是「做到哪了」，中间的助手消息是过程。空正文（只有工具调用）不覆盖上一条。同时记下最后一条 ≥ 80 字的结论（`resultFull`），末条不足 80 字时 digest 用它并在行尾加「（进行中）」，两条结论都随 collect 回给面板。
-- 标题取 `session/title` 事件（last-wins，与官方 title 投影一致）；标题是代码或过长粘贴时退回项目名。
-- 生成走 `llm.stream` 流式接口；模型由设置决定，留空则跟随 `agentDefaultModel`。
-- 同一天的并发收集会合并成一次；过去日期的结果直接缓存复用，当天的只信 5 分钟。面板先读落盘的总结，再后台收集会话清单。内存里最多保留 8 份运行记录。
-- 单个会话读取失败只跳过该会话并记一行日志，不影响整次总结。
+- The session list is the union of two paths: sessions whose `updatedAt` in `sessionController.list()` (the last real human question, taken from the persisted projection cache) falls on that day, plus sessions created in the last 7 days. The projection cache is not full coverage, so sessions it misses fall back to `updatedAt` = creation time and get dropped; the second path patches that hole, and `readSession`'s real event times give the final verdict. The second path is append-only: guessing wrong only reads a few extra sessions and never misses one.
+- Each session is read exactly once through `sessionQuery.readSession`: header, title, counts, all real human requests, the last assistant conclusion and tool-call events in one go. listEvents / readEvent / readSession each load the full session log every time and the observation cache holds only 5 LRU entries, so one extra read multiplies the wait.
+- Requests count only real human input: `source.kind === 'user'` on `user/message` counts, agent-injected context does not; a session with no real human input is skipped entirely.
+- The conclusion takes `assistant/message`'s `data.message.content` (note: not `data.content`, which is the user message's path): from the block array only `type === 'text'` blocks are collected, multiple blocks joined with newlines, and the last non-empty one across the session — the last line is "where it got to", while middle assistant messages are process. An empty body (tool calls only) does not overwrite the previous one. The last conclusion of 80 characters or more (`resultFull`) is also recorded, used by the digest with "(in progress)" appended when the last line is under 80 characters, and both conclusions are returned to the panel with collect.
+- The title takes the `session/title` event (last-wins, consistent with the official title projection); a title that is code or an over-long paste falls back to the project name.
+- Generation goes through the `llm.stream` streaming interface; the model is decided by settings, and leaving it empty follows `agentDefaultModel`.
+- Concurrent collection for the same day merges into one; results for past dates are reused from cache directly, while today's are trusted for only 5 minutes. The panel reads the saved summary from disk first, then collects the session list in the background. At most 8 run records are kept in memory.
+- A single session failing to read skips only that session and logs one line, without affecting the whole summary.

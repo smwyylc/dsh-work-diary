@@ -1,5 +1,6 @@
-# dsh-work-diary 自注册 bundle：row id 用包名（= 包名，browser module 身份才稳定）。
+# @smwyylc/dsh-work-diary 自注册 bundle：row id 是本插件的行身份（稳定，不随包名变），
+# row name 必须是发布后的包名——Host 按这个说明符解析 host 半区，client-modules 也按它认包。
 # 由 profile 的 dsh.profile.bundles 挂载，profile 侧不再手写 insert 行。
 - insert:
     - id: dsh-work-diary
-      name: dsh-work-diary
+      name: '@smwyylc/dsh-work-diary'
