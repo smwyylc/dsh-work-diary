@@ -4,7 +4,7 @@ English | [中文](README.zh.md)
 
 A daily work diary for the DSH Web GUI. The sidebar gains a "Diary" icon; opening it gathers the sessions that had activity on a given day and turns them into one Markdown diary entry. It can run on a schedule every day or on demand, and the model used for the summary is configurable.
 
-A dozen sessions and a few dozen tool calls in one day, and by the evening you rarely remember what you actually did. This plugin flips through those sessions for you and saves them into a readable diary — you do not read the whole thing, it only has to say roughly "what got done today". The default tier costs about 7200-9200 tokens once a day.
+A dozen sessions and a few dozen tool calls in one day, and by the evening you rarely remember what you actually did. This plugin flips through those sessions for you and saves them into a readable diary — you do not read the whole thing, it only has to say roughly "what got done today". The default tier costs about 8900-11600 tokens once a day.
 
 ## What it does
 
@@ -46,10 +46,12 @@ Basis: **input = that day's digests of every session + the fixed template** (267
 | --- | --- | --- |
 | Input characters (digest + fixed template) | about 10-12k | about 13-17k |
 | Input tokens (at 1.5 characters/token) | about 6700-8000 | about 8700-11300 |
-| Output + thinking tokens | about 500-1200 | about 800-1900 |
-| Total tokens for the day | about 7200-9200 | about 9500-13200 |
+| Output + thinking tokens | about 2200-3600 | about 2600-4000 |
+| Total tokens for the day | about 8900-11600 | about 11300-15300 |
 
-The range comes from two things stacking together: the conclusion budget was raised from 500 to 1000 characters (which pushed the brief tier's input from about 4400 tokens to about 6.7k), and the "backfill the previous complete conclusion when the last line is too short" rule (see the next section). How much a backfill recovers depends on the session itself — measured on the same day, a backfill may add only 45 characters or recover 900, which is why the bounds are far apart. Usually only one or two of the 13 sessions trigger it.
+The input half comes from the conclusion budget being raised from 500 to 1000 characters (which pushed the brief tier's input from about 4400 tokens to about 6.7k) and from the "backfill the previous complete conclusion when the last line is too short" rule (see the next section). How much a backfill recovers depends on the session itself — measured on the same day, a backfill may add only 45 characters or recover 900, which is why the input bounds are far apart. Usually only one or two of the 13 sessions trigger it.
+
+The output half is dominated by thinking, which the gateway will not let anyone switch off (see "How it saves token"). On 2026-10-28 the brief tier measured 2920 input tokens plus 2710 output tokens on a six-session day, and the complete tier 4185 plus 3067. Doubling the session count roughly doubles the input and leaves the output unchanged.
 
 It runs automatically once a day. With "Generate daily on a schedule" turned off the fixed cost is 0 and a call only happens when you click "Generate summary".
 
@@ -74,8 +76,8 @@ The default tier compresses layer by layer, from sampling to output, keeping onl
 
 **Output**:
 
-- The request carries a hard `maxTokens` cap (900 brief / 1600 complete). Writing "no more than 600 characters" in the prompt is routinely ignored by the model; only the request field can hold the line. The twofold margin avoids the body being cut mid-sentence.
-- The thinking tier takes the lowest one the model supports. A summary needs no long thinking, and thinking tokens are often dearer than the body; when the model exposes no tiers none is sent, letting the adapter use its own default.
+- The request carries a hard `maxTokens` cap (4000 brief / 6000 complete). The cap has to cover **thinking plus body** together: on 2026-10-28 every one of eight tested models returned an empty body at 900 tokens, because their thinking runs 1500-9000 characters and eats the whole budget before any body appears. Word limits stay in the prompt (600 characters for brief, 800 for complete); measured at the 4000 cap two models wrote 724 and 741 characters, so they mostly obey.
+- Thinking cannot be switched off through this gateway. Six spellings were tried on 2026-10-28 (`reasoning_effort=none/low/minimal`, `enable_thinking=false`, `thinking.type=disabled`, and sending nothing): the gateway accepts them all without error and forwards none of them, so thinking never drops below roughly 460 characters, and `reasoning_effort=none` on a real digest sometimes made it longer (6536 characters). The only lever left is the prompt, which now explicitly forbids thinking, analysis and draft output; in a controlled run that took the body from empty to 905 characters. Thinking is therefore the larger half of the output cost and the main reason the total sits where it does.
 
 ## Configuration
 
