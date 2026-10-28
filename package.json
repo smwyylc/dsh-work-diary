@@ -1,7 +1,7 @@
 {
   "name": "@smwyylc/dsh-work-diary",
   "description": "DSH Web GUI 每日日记插件：侧栏「日记」面板，按天汇总当天所有会话，生成中文 Markdown 总结；支持定时自动执行与手动生成，总结模型可配置。",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/smwyylc/dsh-work-diary.git"
